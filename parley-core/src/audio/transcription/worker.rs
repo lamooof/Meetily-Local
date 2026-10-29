@@ -251,9 +251,7 @@ pub fn start_transcription_task(
                 },
             };
 
-            if matches!(engine, TranscriptionEngine::GigaAm(_))
-                && item.chunk.data.len() > gigaam_core::MAX_SAMPLES
-            {
+            if !engine.is_whisper() && item.chunk.data.len() > engine.max_segment_samples() {
                 let speech = crate::audio::vad::SpeechSegment {
                     samples: item.chunk.data.clone(),
                     confidence: 1.0,
@@ -264,7 +262,7 @@ pub fn start_transcription_task(
                         * 1000.0,
                 };
                 let mut parts =
-                    crate::audio::common::split_segment_bounded(&speech, gigaam_core::MAX_SAMPLES);
+                    crate::audio::common::split_segment_bounded(&speech, engine.max_segment_samples());
                 for part in parts.drain(..) {
                     let sub = PendingChunk {
                         chunk: AudioChunk {
@@ -359,7 +357,7 @@ async fn process_chunk(
     // Provider-aware confidence threshold
     let confidence_threshold = match engine {
         TranscriptionEngine::Whisper(_) => 0.3,
-        TranscriptionEngine::GigaAm(_) => 0.0,
+        TranscriptionEngine::GigaAm(_) | TranscriptionEngine::Parakeet(_) => 0.0,
     };
     let confidence_str = match confidence_opt {
         Some(c) => format!("{:.2}", c),
@@ -637,6 +635,10 @@ async fn transcribe_chunk_with_provider(
 
     // Transcribe using the appropriate engine (with improved error handling)
     match engine {
+        TranscriptionEngine::Parakeet(engine) => engine
+            .transcribe(speech_samples, false)
+            .await
+            .map_err(TranscriptionError::EngineFailed),
         TranscriptionEngine::GigaAm(engine) => engine
             .transcribe(speech_samples, false)
             .await

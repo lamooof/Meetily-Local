@@ -217,12 +217,12 @@ async fn decode_and_emit(
     chunk: PartialAudioChunk,
     max_threads: i32,
 ) -> Result<(), String> {
-    let (text, _conf, _partial) = if let super::engine::TranscriptionEngine::GigaAm(engine) =
+    let (text, _conf, _partial) = if !selected_engine.is_whisper() {
         selected_engine
-    {
-        engine
             .transcribe(
                 sliding_window(&chunk.samples, PARTIAL_WINDOW_SAMPLES).to_vec(),
+                None,
+                None,
                 true,
             )
             .await?

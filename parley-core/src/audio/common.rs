@@ -656,11 +656,7 @@ pub(crate) async fn run_batch_transcription(
     // Split very long segments at silence boundaries for better transcription quality.
     // Hard cuts at arbitrary sample positions lose words at boundaries. Instead, scan
     // for the lowest-energy window near the target split point and cut there.
-    let max_segment_samples = if whisper_engine.is_whisper() {
-        25 * 16000
-    } else {
-        gigaam_core::MAX_SAMPLES
-    }; // 25 seconds at 16kHz
+    let max_segment_samples = whisper_engine.max_segment_samples();
 
     let mut processable_segments: Vec<crate::audio::vad::SpeechSegment> = Vec::new();
     for segment in speech_segments {

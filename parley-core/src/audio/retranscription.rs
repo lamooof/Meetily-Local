@@ -358,7 +358,13 @@ async fn run_retranscription(
         )
         .await
         .map_err(|e| anyhow!(e))?;
-        if selected_provider == crate::gigaam::PROVIDER {
+        if selected_provider == crate::parakeet::PROVIDER {
+            super::transcription::TranscriptionEngine::Parakeet(
+                crate::parakeet::acquire(&selected_model)
+                    .await
+                    .map_err(|e| anyhow!(e))?,
+            )
+        } else if selected_provider == crate::gigaam::PROVIDER {
             super::transcription::TranscriptionEngine::GigaAm(
                 crate::gigaam::acquire(&selected_model)
                     .await

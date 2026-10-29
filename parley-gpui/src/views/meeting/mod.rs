@@ -1263,7 +1263,7 @@ impl MeetingView {
         let model = self
             .retranscribe_model_index
             .and_then(|i| self.retranscribe_models.get(i).cloned()).filter(|m| !m.is_empty());
-        let provider = model.as_ref().map(|m| if parley_core::gigaam::is_model(m) { "localGigaAM" } else { "localWhisper" }.to_string());
+        let provider = model.as_ref().map(|m| parley_core::audio::transcription::engine::provider_for_model(m).to_string());
 
         self.retranscribe_in_progress = true;
         self.retranscribe_error = None;

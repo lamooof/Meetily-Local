@@ -195,6 +195,9 @@ impl SettingsRepository {
                 "Finish the active transcription before changing its model".into(),
             ));
         }
+        if provider == crate::parakeet::PROVIDER && !crate::parakeet::is_model(model) {
+            return Err(sqlx::Error::Protocol("Unknown Parakeet model".into()));
+        }
         if provider == crate::gigaam::PROVIDER && !crate::gigaam::is_model(model) {
             return Err(sqlx::Error::Protocol("Unknown GigaAM model".into()));
         }
